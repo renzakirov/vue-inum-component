@@ -2,18 +2,22 @@
   div.container
     div.single-control
       div.control-title Control-0:
-      INum(v-model="num0.value" :helper="num0.helper")
+      div.control-number
+        INum(v-model="num0.value" :helper="num0.helper")
 
     div.multiple-controls
       div.single-control
         div.control-title Control-1:
-        INum(v-model="num1" :helper="helper1")
+        div.control-number
+          INum(v-model="num1" :helper="helper1")
       div.single-control
         div.control-title Control-2:
-        INum(v-model="num2" :helper="helper2")
+        div.control-number
+          INum(v-model="num2" :helper="helper2")
       div.single-control
         div.control-title Control-3:
-        INum(v-model="num3")
+        div.control-number
+          INum(v-model="num3")
 
 </template>
 
@@ -89,8 +93,8 @@ export default {
 
 <style lang="sass" scoped>
   .container
-    width: 50%
-    min-width: 100px
+    width: 80%
+    min-width: 200px
     height: 100%
     margin: 4rem auto;
 
@@ -100,10 +104,13 @@ export default {
       display: flex
       flex-flow: row nowrap
       justify-content: flex-start
-      align-items: center
+      align-items: flex-start
 
       .control-title
         margin-right: 2rem
+        font-size: 1.2rem;
+        min-width: 7rem
+      .control-number
 
     .multiple-controls
       margin-top: 3rem

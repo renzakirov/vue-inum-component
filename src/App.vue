@@ -1,5 +1,5 @@
 <template lang="pug">
-  div#App.container
+  div#App
     Task
 </template>
 

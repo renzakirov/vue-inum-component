@@ -1,13 +1,13 @@
 <template lang="pug">
   div.inum-container
     div.inum-label(@click="clickLabelHandler")
-      span(v-show="!editMode") {{ value }}
+      span(v-show="!editMode") {{ stringedValue }}
         IconBase(icon-name="down")
           IconSDown
 
-    div.inum-input-container(v-show="editMode" @click.stop)
+    div.inum-input-container(v-show="editMode" @click.stop :class="{'short-error': shortError }")
       div.inum-input-wrapp
-        input.inum-input(ref="input" type="text" inputmode ="numeric" :value="value" @input="inputHandler" @focus="focusHandler"  @blur="blurHandler" @keyup.enter="enterHandler" @keyup.esc="escHandler" :class="{'short-error': shortError }")
+        input.inum-input(ref="input" type="text" inputmode ="numeric" :value="stringedValue" @input="inputHandler" @focus="focusHandler"  @blur="blurHandler" @keyup.enter="enterHandler" @keyup.esc="escHandler")
       
       div.inum-input-icons-wrap(@dblclick.stop)
         span.icon-up-wrap(@click="increment")
@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import fromExponential from 'from-exponential';
+
 import IconBase from './icons/icon-base.vue';
 import IconUp from './icons/icon-up.vue';
 import IconDown from './icons/icon-down.vue';
@@ -60,7 +62,6 @@ export default {
       errorTimout: null,
       editMode: false,
       oldValue: 0,
-      timer: null,
     };
   },
   watch: {
@@ -133,12 +134,12 @@ export default {
       }
     },
 
-    increment(val) {
-      console.log('incr ', val);
+    increment() {
       this.$emit('change', this.value + 1);
     },
     decrement() {
       if (this.value > 0) this.$emit('change', this.value - 1);
+      else this.makeShortError();
     },
   },
   computed: {
@@ -150,6 +151,9 @@ export default {
         this.editMode
       );
     },
+    stringedValue() {
+      return fromExponential(this.value);
+    },
   },
 };
 </script>
@@ -160,7 +164,6 @@ export default {
   flex-flow: column nowrap
   font-size: 1.2rem
   box-sizing: border-box
-  padding: 0.3em
 
   .inum-label
     span
@@ -199,11 +202,16 @@ export default {
       outline: 0
       box-shadow: 0 0 0 2px rgba(45,140,240,.2)
 
+    &.short-error
+      border-color: red
+      outline: 0
+      box-shadow: 0 0 0 2px rgba(255, 201, 201, 0.2)
+
     .inum-input-wrapp
       overflow: hidden
       height: 32px
       .inum-input
-        width: 100%
+        width: 80%
         height: 32px
         line-height: 32px
         padding: 0 7px
@@ -214,9 +222,6 @@ export default {
         border-radius: 4px
         transition: all .2s linear
 
-        &.short-error
-          background-color: rgba(255, 201, 201, 0.9)
-
     .inum-input-icons-wrap
       position: absolute
       top: 0
@@ -224,7 +229,6 @@ export default {
       right: 0
       width: 10%
       color: #666
-      // width: 22px;
       height: 100%
       background: #fff
       opacity: 0
