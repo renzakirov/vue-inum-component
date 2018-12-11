@@ -9,11 +9,13 @@
       div.inum-input-wrapp
         input.inum-input(ref="input" type="text" inputmode ="numeric" :value="value" @input="inputHandler" @focus="focusHandler"  @blur="blurHandler" @keyup.enter="enterHandler" @keyup.esc="escHandler" :class="{'short-error': shortError }")
       
-      div.inum-input-icons-wrap
-        IconBase.icon-up(icon-name="up" @click="increment")
-          IconUp
-        IconBase.icon-down(icon-name="down" @click="decrement")
-          IconDown
+      div.inum-input-icons-wrap(@dblclick.stop)
+        span.icon-up-wrap(@click="increment")
+          IconBase.icon-up(icon-name="up" width="18" height="9")
+            IconUp
+        span.icon-down-wrap(@click="decrement")
+          IconBase.icon-down(icon-name="down" width="18" height="9")
+            IconDown
 
     span.inum-helper(v-if="showHelper" @click.stop="clickHelperHandler") {{ helper.title }}
        
@@ -92,12 +94,7 @@ export default {
       }
     },
     focusHandler() {},
-    blurHandler() {
-      // this.timer = setTimeout(() => {
-      //   this.editMode = false;
-      //   this.timer = null;
-      // }, 100);
-    },
+    blurHandler() {},
     enterHandler() {
       this.editMode = false;
     },
@@ -136,8 +133,8 @@ export default {
       }
     },
 
-    increment() {
-      console.log('incr');
+    increment(val) {
+      console.log('incr ', val);
       this.$emit('change', this.value + 1);
     },
     decrement() {
@@ -175,11 +172,48 @@ export default {
     width: 100%
     height: 100%
 
+    display: inline-block
+    font-size: 1em
+    background-color: #fff
+    background-image: none
+    position: relative
+    cursor: text
+    transition: border .2s ease-in-out,background .2s ease-in-out,box-shadow .2s ease-in-out
+    margin: 0
+    padding: 0
+    width: 120px
+    height: 32px
+    line-height: 32px
+    vertical-align: middle
+    border: 1px solid #dcdee2
+    border-radius: 4px
+    overflow: hidden
+
+    &:hover
+      border-color: #57a3f3
+      .inum-input-icons-wrap
+        opacity: 1
+
+    &:focuse
+      border-color: #57a3f3
+      outline: 0
+      box-shadow: 0 0 0 2px rgba(45,140,240,.2)
 
     .inum-input-wrapp
-      width: 100%
-      height: 100%
+      overflow: hidden
+      height: 32px
       .inum-input
+        width: 100%
+        height: 32px
+        line-height: 32px
+        padding: 0 7px
+        text-align: left
+        outline: 0
+        color: #666
+        border: 0
+        border-radius: 4px
+        transition: all .2s linear
+
         &.short-error
           background-color: rgba(255, 201, 201, 0.9)
 
@@ -188,25 +222,40 @@ export default {
       top: 0
       bottom: 0
       right: 0
-      width: 10%;
-      
-      .icon-up
-        position: absolute
-        top: 0
-        right: 0
-        height: 50%
-        z-index: 500
-        &:hover
-          color: red
+      width: 10%
+      color: #666
+      // width: 22px;
+      height: 100%
+      background: #fff
+      opacity: 0
+      transition: opacity .4s ease-in-out
 
-      .icon-down
+      .icon-up-wrap
         position: absolute
-        bottom: 0
-        right: 0
+        top: 0px
+        right: 0px
         height: 50%
-        z-index: 500
+        width: 20px
+        .icon-up
+          position: absolute
+          top: 4px
+          right: 3px
         &:hover
-          color: red
+          color: #57a3f3
+          cursor: pointer
+      .icon-down-wrap
+        position: absolute
+        bottom: 0px
+        right: 0px
+        height: 50%
+        width: 20px
+        .icon-down
+          position: absolute
+          bottom: 4px
+          right: 3px
+        &:hover
+          color: #57a3f3
+          cursor: pointer
 
   .inum-helper
     color: red

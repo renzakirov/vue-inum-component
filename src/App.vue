@@ -14,13 +14,19 @@ export default {
 </script>
 
 <style lang="scss">
-body {
+*,
+:after,
+:before,
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+body {
   width: 100%;
   height: 100%;
   background-color: white;
-  color: black;
+  color: #666;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

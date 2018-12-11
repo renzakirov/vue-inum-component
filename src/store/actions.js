@@ -1,8 +1,5 @@
 // import {} from './constants.js';
 
-
-const actions = {
-
-};
+const actions = {};
 
 export default actions;

@@ -1,131 +1,111 @@
 <template lang="pug">
-  div.inum-container(@wheel="wheelHandler")
-    span.inum-plus(@click="plusHandler") +
-    input.inum-input(type="text" inputmode ="numeric" :maxlength="maxlength" :value="value" @input="inputHandler" @keyup.13="submit" @focus="focusHandler" @blur="blurHandler" :class="{'short-error': shortError || error }")
-    span.inum-minus(@click="minusHandler") -
+  div.inum-container
+    div.inum-label(@click="clickLabelHandler")
+      span(v-show="!editMode") {{ value }}
+        IconBase(icon-name="down")
+          IconSDown
+
+    div.inum-input-container(v-show="editMode" @click.stop)
+      div.inum-input-wrapp
+        input.inum-input(ref="input" type="text" inputmode ="numeric" :value="value" @input="inputHandler" @focus="focusHandler"  @blur="blurHandler" @keyup.enter="enterHandler" @keyup.esc="escHandler" :class="{'short-error': shortError }")
+      
+      div.inum-input-icons-wrap
+        IconBase.icon-up(icon-name="up" @click="increment")
+          IconUp
+        IconBase.icon-down(icon-name="down" @click="decrement")
+          IconDown
+
+    span.inum-helper(v-if="showHelper" @click.stop="clickHelperHandler") {{ helper.title }}
+       
 </template>
 
 <script>
+import IconBase from './icons/icon-base.vue';
+import IconUp from './icons/icon-up.vue';
+import IconDown from './icons/icon-down.vue';
+import IconSDown from './icons/icon-sdown.vue';
+
+const REGEXP = /^([0-9]\d*)?$/;
+
 export default {
   name: 'INum',
+  components: {
+    IconBase,
+    IconUp,
+    IconSDown,
+    IconDown,
+  },
   model: {
     prop: 'value',
-    event: 'submit',
+    event: 'change',
   },
   props: {
     value: {
       type: Number,
-      default: 0.05,
+      default: 0,
+      validator(val) {
+        return val >= 0;
+      },
     },
-    min: {
-      type: Number,
-      default: 0.005,
-    },
-    max: {
-      type: Number,
-      default: 0.1,
-    },
-    interval: {
-      type: Number,
-      default: 0.001,
-    },
-    afterComma: {
-      type: Number,
-      default: 3,
-    },
-    maxlength: {
-      type: Number,
-      default: 5,
+    helper: {
+      type: Object,
+      default: null,
     },
   },
   data() {
     return {
-      errorTimout: null,
       shortError: false,
-      error: false,
+      errorTimout: null,
+      editMode: false,
+      oldValue: 0,
+      timer: null,
     };
   },
+  watch: {
+    editMode(newV) {
+      if (newV) {
+        document.addEventListener(
+          'click',
+          () => {
+            console.log('handler ----');
+            this.editMode = false;
+          },
+          { once: true }
+        );
+      }
+    },
+  },
   methods: {
-    plusHandler() {
-      this.increaseByStep();
+    clickLabelHandler() {
+      this.editMode = true;
+      this.oldValue = this.value;
+      this.selectText();
     },
-    increaseByStep() {
-      if (Number(this.value || 0) < this.max) {
-        let val = Number(this.value || 0);
-        val += this.interval;
-        if (val > this.max) val = this.max;
-        // val = fromExponential(val || 0);
-        this.$emit('submit', this.makeNumber(val));
+    inputHandler(evt) {
+      let val = evt.target.value;
+
+      if (REGEXP.test(val)) {
+        this.$emit('change', Number(val));
       } else {
-        this.makeShortError();
-      }
-    },
-    minusHandler() {
-      this.reduceByStep();
-    },
-    reduceByStep() {
-      let val = Number(this.value || 0);
-      if (val > this.min) {
-        val -= this.interval;
-        if (val < this.min) val = this.min;
-      } else {
-        this.makeShortError();
-      }
-      // val = fromExponential(val || 0);
-      this.$emit('submit', this.makeNumber(val));
-    },
-    wheelHandler(evt) {
-      if (evt && evt.deltaY < 0) {
-        this.increaseByStep();
-      } else if (evt && evt.deltaY > 0) {
-        this.reduceByStep();
-      }
-    },
-    inputHandler() {
-      this.setError(false);
-    },
-    submit(evt) {
-      evt.stopPropagation();
-      if (this.testStringValue(evt.target.value)) {
-        const val = this.makeNumber(evt.target.value);
-        if (!this.checkError(val)) {
-          this.setError(false);
-          this.$emit('submit', val);
-          return;
-        }
-      }
-      this.setError(true);
-      this.errText = `Параметр должен быть числом больше ${this.min} и меньше ${
-        this.max
-      }`;
-    },
-    focusHandler() {
-      console.warn('focuse');
-      this.$emit('focus');
-      this.checkError(this.value);
-    },
-    blurHandler(evt) {
-      if (this.testStringValue(evt.target.value)) {
-        const val = this.makeNumber(evt.target.value);
-        if (!this.checkError(val)) {
-          this.setError(false);
-          this.$emit('submit', val);
-        } else {
-          this.makeShortError();
-          if (val < this.min) {
-            this.$emit('submit', this.min);
-            evt.target.value = this.min;
-          } else if (val > this.max) {
-            this.$emit('submit', this.max);
-            evt.target.value = this.max;
-          }
-        }
-      } else {
-        this.makeShortError();
         evt.target.value = this.value;
+        this.makeShortError();
       }
-      this.$emit('blur');
     },
+    focusHandler() {},
+    blurHandler() {
+      // this.timer = setTimeout(() => {
+      //   this.editMode = false;
+      //   this.timer = null;
+      // }, 100);
+    },
+    enterHandler() {
+      this.editMode = false;
+    },
+    escHandler() {
+      this.$emit('change', this.oldValue);
+      this.editMode = false;
+    },
+
     makeShortError() {
       this.shortError = true;
       if (this.errorTimout) {
@@ -135,77 +115,102 @@ export default {
         this.shortError = false;
       }, 400);
     },
-    setError(val = true) {
-      this.error = val;
+
+    selectText() {
+      this.$nextTick(() => {
+        const input = this.$refs.input;
+        if (input) {
+          input.focus();
+          input.setSelectionRange(0, input.value.length);
+        }
+      });
     },
 
-    testStringValue(str) {
-      return this.regexp.test(str);
-    },
-    makeNumber(str) {
-      return Math.round(str * this.power) / this.power;
-    },
-    checkError(val) {
-      if (val >= this.min && val <= this.max) {
-        return false;
-      } else {
-        return true;
+    clickHelperHandler() {
+      if (this.helper.cb) {
+        const val = String(this.helper.cb());
+        if (REGEXP.test(val)) {
+          this.$emit('change', Number(val));
+          this.$refs.input.focus();
+        }
       }
+    },
+
+    increment() {
+      console.log('incr');
+      this.$emit('change', this.value + 1);
+    },
+    decrement() {
+      if (this.value > 0) this.$emit('change', this.value - 1);
     },
   },
   computed: {
-    regexp() {
-      if (this.afterComma === 0) {
-        return /^(0|[1-9]\d*)?$/;
-      }
-      if (this.afterComma > 0) {
-        const reg = new RegExp(
-          `^([0-9]\\d*)(\\.[0-9]{0,${this.afterComma}})?$`
-        );
-        return reg;
-      }
-      return /^(0|[1-9]\d*)(\.\d*)?$/;
-    },
-    power() {
-      return Math.pow(10, this.afterComma);
+    showHelper() {
+      return (
+        this.helper &&
+        this.helper.title &&
+        typeof this.helper.cb === 'function' &&
+        this.editMode
+      );
     },
   },
 };
 </script>
 
-<style lang="scss" scoped>
-.inum-container {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: flex-start;
-  align-items: center;
-  height: 1.6rem;
-  .inum-plus,
-  .inum-minus {
-    height: 100%;
-    width: 1.5rem;
-    border: 1px solid #e2ecff;
-    text-align: center;
-    vertical-align: middle;
-    font-size: 1.5rem;
-    line-height: 1;
-    &:hover {
-      cursor: pointer;
-    }
-  }
-  .inum-input {
-    width: 3rem;
-    padding-left: 0.5rem;
+<style lang="sass">
+.inum-container
+  display: flex
+  flex-flow: column nowrap
+  font-size: 1.2rem
+  box-sizing: border-box
+  padding: 0.3em
 
-    height: 100%;
-    margin-left: 0.2rem;
-    margin-right: 0.2rem;
-    &.short-error {
-      background-color: rgba(255, 201, 201, 0.9);
-    }
-    &:focus {
-      outline-color: #3f4758;
-    }
-  }
-}
+  .inum-label
+    span
+      &:hover
+        color: blue
+
+  .inum-input-container
+    position: relative
+    width: 100%
+    height: 100%
+
+
+    .inum-input-wrapp
+      width: 100%
+      height: 100%
+      .inum-input
+        &.short-error
+          background-color: rgba(255, 201, 201, 0.9)
+
+    .inum-input-icons-wrap
+      position: absolute
+      top: 0
+      bottom: 0
+      right: 0
+      width: 10%
+
+      .icon-up
+        position: absolute
+        top: 0
+        right: 0
+        height: 50%
+        z-index: 500
+        &:hover
+          color: red
+
+      .icon-down
+        position: absolute
+        bottom: 0
+        right: 0
+        height: 50%
+        z-index: 500
+        &:hover
+          color: red
+
+  .inum-helper
+    color: red
+    font-size: 0.7em
+    &:hover
+      cursor: pointer
 </style>

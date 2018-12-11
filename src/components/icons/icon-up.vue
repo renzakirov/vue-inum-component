@@ -1,3 +1,8 @@
 <template>
-  <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" fill="currentColor" />
+  <path
+    d="M 2 6 h 14 l -7 -6 z"
+    fill="currentColor"
+    stroke="currentColor"
+    stroke-width="1"
+  />
 </template>
